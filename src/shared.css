@@ -1,0 +1,316 @@
+/* Shared QR Billing Styles - Theme, Layout, Common Components */
+
+/* Theming wrapper enables palette overrides without touching component markup */
+.qr-billing-theme {
+    --qr-color-bg: #111;
+    --qr-color-surface: #222;
+    --qr-color-surface-alt: #1a1a1a;
+    --qr-color-border: #333;
+    --qr-color-accent: #fbbf24;
+    --qr-color-accent-rgb: 251, 191, 36;
+    --qr-color-danger: #ff4444;
+    --qr-color-text: #fff;
+    --qr-color-text-dim: #ccc;
+    --qr-color-muted: #666;
+    color-scheme: dark;
+}
+
+.qr-shell {
+    position: relative;
+    min-height: 100vh;
+    --qr-tabbar-height: 60px;
+    padding-bottom: var(--qr-tabbar-height);
+    background: var(--qr-color-bg);
+    overflow-x: hidden;
+}
+
+/* Hide native scrollbars inside QR billing area on narrow/mobile views while preserving scroll */
+@media (max-width:760px) {
+    .qr-billing-theme {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .qr-billing-theme ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+    }
+}
+
+.qr-tabs-content {
+    padding-bottom: 0;
+}
+
+.qr-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Provide horizontal gutter for content while allowing footer to sit flush */
+.qr-content>.qr-orders,
+.qr-content>.qr-cart,
+.qr-content>.qr-profile,
+.qr-content>.qr-menu-container { 
+    padding-left:20px; 
+    padding-right:20px; 
+}
+
+/* Unified vertical top padding per page */
+.qr-cart, .qr-profile { 
+    padding-top:24px; 
+}
+
+.qr-orders { 
+    padding-top:28px; 
+}
+
+.qr-menu-container { 
+    padding-top:24px; 
+}
+
+/* Global body class (added in component) to force-hide scrollbars on supported browsers */
+body.qr-billing-active { 
+    scrollbar-width:none; 
+    -ms-overflow-style:none; 
+}
+
+body.qr-billing-active::-webkit-scrollbar { 
+    width:0; 
+    height:0; 
+}
+
+/* Tab Bar Styles */
+.qr-tabbar-outer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1200;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.qr-tabbar-inner {
+    width: 100%;
+    max-width: 600px;
+    padding: 0;
+    pointer-events: none;
+    margin: 0 auto;
+}
+
+.qr-tabbar {
+    background: var(--qr-color-surface-alt);
+    border: 1px solid var(--qr-color-border);
+    border-bottom: none;
+    height: 60px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 18px -6px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 255, 255, .02);
+    pointer-events: auto;
+    margin-top: -4px;
+}
+
+.qr-tabbar button {
+    background: none;
+    border: none;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    cursor: pointer;
+    flex: 1;
+    height: 100%;
+    transition: color .2s ease;
+}
+
+.qr-tabbar button.active {
+    color: var(--qr-color-accent);
+    font-weight: 700;
+}
+
+.qr-tabbar button:focus-visible { 
+    outline: 2px solid var(--qr-color-accent); 
+    outline-offset: 2px; 
+}
+
+/* Modal Styles */
+.qr-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .8);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 1000;
+}
+
+.qr-modal-backdrop.center {
+    align-items: center;
+    padding: 24px 16px;
+}
+
+.qr-modal {
+    background: #222;
+    width: 100%;
+    max-width: 520px;
+    max-height: 80%;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    overflow-y: auto;
+    animation: slideUp .25s ease;
+}
+
+.qr-modal.small {
+    max-width: 420px;
+    width: 100%;
+    border-radius: 20px;
+    padding: 20px;
+    max-height: none;
+    background: var(--qr-color-surface, #222);
+    box-shadow: 0 12px 40px -8px rgba(0,0,0,.7), 0 2px 4px rgba(0,0,0,.4);
+    animation: popIn .26s cubic-bezier(.22,1.2,.36,1);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.qr-modal.small h3 { 
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #fff;
+    font-size: 20px; 
+}
+
+.qr-modal.small p { 
+    margin: 4px 0;
+    color: #ccc; 
+}
+
+.qr-modal.small .qr-actions { 
+    width: 100%;
+    justify-content: space-between; 
+}
+
+.qr-modal.small .qr-actions button { 
+    flex: 1; 
+}
+
+.qr-modal.small .qr-actions button.secondary { 
+    margin-right: 8px; 
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(40px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    0% { transform: scale(.94) translateY(6px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.qr-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.qr-modal-head h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 20px;
+}
+
+.qr-modal-head button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+.qr-modal-img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    display: block;
+}
+
+.qr-modal p {
+    padding: 20px;
+    color: #ccc;
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.qr-modal h5 {
+    padding: 0 20px;
+    color: #fff;
+    margin: 12px 0 6px;
+    font-size: 15px;
+}
+
+.qr-customizations {
+    list-style: none;
+    margin: 0;
+    padding: 0 20px 0 20px;
+}
+
+.qr-customizations li {
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.qr-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-price {
+    color: #fbbf24;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fbbf24;
+    color: #000;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Background gradient for visual depth */
+.qr-billing-theme:before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(to right, #000 0%, #0b0b0b 20%, #0b0b0b 80%, #000 100%);
+    pointer-events: none;
+    z-index: -1;
+}

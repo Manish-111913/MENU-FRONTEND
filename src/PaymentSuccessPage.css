@@ -1,0 +1,219 @@
+/* PaymentSuccessPage.css - Bill receipt style with consistent QR Billing theme */
+
+.qr-payment-success-container {
+  background: var(--qr-color-bg, #111);
+  color: var(--qr-color-text, #fff);
+  min-height: 100%;
+  padding: 16px;
+  position: relative;
+  font-family: system-ui, Arial, sans-serif;
+  text-align: left !important;
+}
+
+/* Force all content to be left-aligned */
+.qr-payment-success-container * {
+  text-align: left !important;
+}
+
+/* Exception: Keep header title centered and right-aligned prices */
+.success-title {
+  text-align: center !important;
+}
+
+.detail-row span:last-child,
+.item-total-success,
+.success-summary-row span:last-child {
+  text-align: right !important;
+}
+
+.qr-header {
+  padding: 8px 0 16px;
+  border-bottom: 1px solid var(--qr-color-border, #333);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* Header */
+.success-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.success-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--qr-color-text, #fff);
+  text-align: center;
+  flex: 1;
+}
+
+.close-success-btn {
+  background: none;
+  border: none;
+  color: var(--qr-color-text, #fff);
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-success-btn:hover {
+  background: var(--qr-color-surface, #333);
+}
+
+/* Success Card */
+.success-card {
+  background: var(--qr-color-accent, #fbbf24);
+  margin: 20px 0;
+  border-radius: 12px;
+  padding: 0;
+  height: 120px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 20px;
+}
+
+.success-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--qr-color-bg, #111);
+  margin: 0;
+  text-align: center;
+}
+
+/* Order Details Section */
+.order-details-section {
+  flex: 1;
+  padding: 24px;
+  background: var(--qr-color-surface, #222);
+  margin: 0 0 20px 0;
+  border-radius: 8px;
+  text-align: left !important;
+}
+
+.order-details-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 20px 0 16px 0;
+  color: var(--qr-color-text); /* #fff */
+  text-align: left !important;
+}
+
+/* Date, Time, Order ID rows */
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--qr-color-border); /* #333 */
+  font-size: 14px;
+}
+
+.detail-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+
+.detail-row span:first-child {
+  color: var(--qr-color-text); /* #fff */
+  text-align: left !important;
+}
+
+.detail-row span:last-child {
+  color: var(--qr-color-text); /* #fff */
+  text-align: right !important;
+}
+
+/* Items Section */
+.items-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 20px 0 16px 0;
+  color: var(--qr-color-text); /* #fff */
+  text-align: left !important;
+}
+
+/* Order Items */
+.order-items-list {
+  margin-bottom: 20px;
+  text-align: left !important;
+}
+
+.success-order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 0;
+  font-size: 14px;
+  text-align: left !important;
+}
+
+.item-details {
+  flex: 1;
+  text-align: left !important;
+}
+
+.item-name-success {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--qr-color-text); /* #fff */
+  margin-bottom: 2px;
+  text-align: left !important;
+}
+
+.item-quantity-success {
+  font-size: 12px;
+  color: var(--qr-color-muted); /* #666 */
+  text-align: left !important;
+}
+
+.item-total-success {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--qr-color-text); /* #fff */
+  text-align: right;
+}
+
+/* Summary */
+.success-summary {
+  border-top: 1px solid var(--qr-color-border); /* #333 */
+  padding-top: 12px;
+  margin-top: 12px;
+  text-align: left !important;
+}
+
+.success-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 14px;
+  text-align: left !important;
+}
+
+.success-summary-row span:first-child {
+  color: var(--qr-color-text); /* #fff */
+  text-align: left;
+}
+
+.success-summary-row span:last-child {
+  color: var(--qr-color-text); /* #fff */
+  text-align: right;
+}
+
+.success-summary-row.total {
+  font-weight: 600;
+  font-size: 16px;
+  padding: 8px 0 0 0;
+  border-top: 1px solid var(--qr-color-border); /* #333 */
+  margin-top: 8px;
+}
+
+.success-summary-row.total span {
+  color: var(--qr-color-text); /* #fff */
+}
+
+/* Remove the old action button styles and responsive section - not needed for new design */
