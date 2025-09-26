@@ -56,6 +56,18 @@ const PaymentSuccessPage = ({ orderData, onComplete }) => {
             <span>Order ID</span>
             <span>1234567890</span>
           </div>
+          
+          {/* Transaction ID */}
+          <div className="detail-row">
+            <span>Transaction ID</span>
+            <span>TXN9876543210</span>
+          </div>
+          
+          {/* Payment Method */}
+          <div className="detail-row">
+            <span>Payment Method</span>
+            <span>UPI Payment</span>
+          </div>
 
           {/* Items Section */}
           <h3 className="items-title">Items</h3>
@@ -87,6 +99,27 @@ const PaymentSuccessPage = ({ orderData, onComplete }) => {
             <div className="success-summary-row total">
               <span>Total</span>
               <span>₹{calculateTotal().toFixed(2)}</span>
+            </div>
+          </div>
+          
+          {/* Receipt Options Section */}
+          <div className="receipt-options-section">
+            <h3 className="receipt-title">Receipt Options</h3>
+            <div className="receipt-buttons">
+              <button className="receipt-btn download-btn">Download PDF</button>
+              <button className="receipt-btn email-btn">Email Receipt</button>
+            </div>
+          </div>
+          
+          {/* Rating Section */}
+          <div className="rating-section">
+            <h3 className="rating-title">Rate your experience</h3>
+            <div className="stars-container">
+              <span className="star filled">★</span>
+              <span className="star filled">★</span>
+              <span className="star filled">★</span>
+              <span className="star filled">★</span>
+              <span className="star filled">★</span>
             </div>
           </div>
         </div>

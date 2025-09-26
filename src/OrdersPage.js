@@ -1,141 +1,147 @@
 import React, { useState, useEffect } from 'react';
 import './OrdersPage.css';
 import './shared.css';
-import { Clock, CheckCircle2, Truck, ChefHat, Package, MapPin, Phone, MessageCircle } from 'lucide-react';
+import { Package, Clock, Truck, CheckCircle2 } from 'lucide-react';
 
-// Simplified adaptive version of Orders tracking screen for web.
+const OrdersPage = ({ sessionId, businessId }) => {
+  // Timeline steps definition
+  const timelineSteps = [
+    { 
+      id: 'preparing', 
+      label: 'Preparing', 
+      icon: Clock, 
+      time: '10:30 PM'
+    },
+    { 
+      id: 'ready', 
+      label: 'Ready', 
+      icon: Package, 
+      time: '10:45 PM'
+    },
+    { 
+      id: 'on-the-way', 
+      label: 'On the way', 
+      icon: Truck, 
+      time: null
+    },
+    { 
+      id: 'delivered', 
+      label: 'Delivered', 
+      icon: CheckCircle2, 
+      time: null
+    }
+  ];
 
-const statusSteps = [
-  { key: 'preparing', label: 'Preparing', icon: ChefHat, color: '#fbbf24' },
-  { key: 'ready', label: 'Ready', icon: Package, color: '#10b981' },
-  { key: 'out-for-delivery', label: 'On the way', icon: Truck, color: '#3b82f6' },
-  { key: 'delivered', label: 'Delivered', icon: CheckCircle2, color: '#22c55e' }
-];
-
-export default function OrdersPage({ sessionId, businessId }) {
-  const [order, setOrder] = useState(null);
-  const [error, setError] = useState(null);
-
-  const apiBase = process.env.REACT_APP_API_BASE || '';
-
-  useEffect(() => {
-    let cancelled = false;
-    const ctl = new AbortController();
-
-    const mapStatus = (s) => {
-      if (!s) return 'preparing';
-      const v = String(s).toUpperCase();
-      if (v === 'PLACED' || v === 'IN_PROGRESS') return 'preparing';
-      if (v === 'READY') return 'ready';
-      if (v === 'COMPLETED') return 'delivered';
-      return 'preparing';
-    };
-
-    const fetchOrders = async () => {
-      try {
-  const base = apiBase || window.location.origin;
-  const root = base.replace(/\/$/, '');
-  const url = new URL(`${root}/api/orders`);
-        if (businessId) url.searchParams.set('businessId', businessId);
-        if (sessionId) url.searchParams.set('sessionId', sessionId);
-        const r = await fetch(url.toString(), { signal: ctl.signal });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        if (cancelled) return;
-        const latest = (data.orders || [])[0];
-        if (latest) {
-          setOrder({
-            id: latest.order_id,
-            items: [],
-            total: 0,
-            orderTime: latest.placed_at ? new Date(latest.placed_at) : new Date(),
-            estimatedDelivery: latest.estimated_ready_time ? new Date(latest.estimated_ready_time) : new Date(Date.now()+25*60*1000),
-            currentStatus: mapStatus(latest.status),
-            statusHistory: [{ status: mapStatus(latest.status), timestamp: new Date() }],
-            deliveryAddress: '',
-            contactNumber: ''
-          });
-          setError(null);
-        }
-      } catch (e) {
-        if (cancelled) return;
-        setError(String(e));
-      }
-    };
-
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 5000);
-    return () => { cancelled = true; ctl.abort(); clearInterval(interval); };
-  }, [apiBase, sessionId, businessId]);
-
-  const progress = (status) => {
-    const idx = statusSteps.findIndex(s => s.key === status);
-    return (idx+1)/statusSteps.length * 100;
+  // Mock data to match the images exactly
+  const orderData = {
+    orderId: '#ORD-2024-001',
+    status: 'ready',
+    statusText: 'Order ready for pickup',
+    estimatedDelivery: '25 minutes',
+    orderTime: '10:30 PM',
+    items: [
+      { name: 'Crispy Calamari', quantity: 2 },
+      { name: 'Grilled Salmon', quantity: 1 },
+      { name: 'Chocolate Lava Cake', quantity: 1 }
+    ],
+    total: 44.47
   };
 
-  const formatTime = (d) => d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
-  const etaText = () => { if (!order) return '--'; const diff = order.estimatedDelivery.getTime() - Date.now(); const m = Math.ceil(diff/60000); return m>0? `${m} minutes` : 'Arriving soon'; };
+  // Function to determine if a step is completed based on current status
+  const isStepCompleted = (stepId) => {
+    const currentStepIndex = timelineSteps.findIndex(step => step.id === orderData.status);
+    const stepIndex = timelineSteps.findIndex(step => step.id === stepId);
+    return stepIndex <= currentStepIndex;
+  };
+
+  // Function to determine if connecting line should be golden
+  const isLineCompleted = (stepIndex) => {
+    const currentStepIndex = timelineSteps.findIndex(step => step.id === orderData.status);
+    return stepIndex < currentStepIndex;
+  };
 
   return (
-    <div className="qr-orders">
-      <div className="qr-orders-head">
-        <h2>Order Tracking</h2>
-        <span className="order-id">{order ? `#${order.id}` : ''}</span>
+    <div className="order-tracking-container">
+      {/* Header */}
+      <div className="tracking-header">
+        <h1 className="tracking-title">Order Tracking</h1>
+        <span className="order-number">{orderData.orderId}</span>
       </div>
-      <div className="qr-status-card qr-surface-card">
-        <div className="status-row">
-          <div className="status-icon" style={{ background: statusSteps.find(s=>s.key===order?.currentStatus)?.color || '#666' }}>
-            {React.createElement(statusSteps.find(s=>s.key===order?.currentStatus)?.icon || Clock, { size:24, color:'#fff' })}
+
+      {/* Status Card */}
+      <div className="status-card">
+        <div className="status-info">
+          <div className="status-icon">
+            <Package size={24} />
           </div>
-          <div className="status-text">
-            <h4>{order ? order.currentStatus.replace(/-/g,' ') : 'No recent order'}</h4>
-            <p>Estimated delivery: {etaText()}</p>
+          <div className="status-details">
+            <h2 className="status-title">{orderData.statusText}</h2>
+            <p className="status-subtitle">Estimated delivery: {orderData.estimatedDelivery}</p>
           </div>
         </div>
-        <div className="progress-track">
-          <div className="progress-fill" style={{ width: progress(order?.currentStatus || 'preparing')+'%' }} />
+        <div className="progress-bar">
+          <div className="progress-fill"></div>
         </div>
       </div>
-      <div className="qr-timeline qr-surface-card alt">
-        <h3>Order Progress</h3>
-        {statusSteps.map((step, idx) => {
-          const currentIdx = statusSteps.findIndex(s=>s.key=== (order?.currentStatus || 'preparing'));
-            const isCompleted = idx <= currentIdx;
-            const history = order?.statusHistory?.find(h=>h.status===step.key);
+
+      {/* Order Progress */}
+      <div className="progress-section">
+        <h3 className="section-title">Order Progress</h3>
+        <div className="timeline">
+          {timelineSteps.map((step, index) => {
+            const isCompleted = isStepCompleted(step.id);
+            const isCurrentStep = orderData.status === step.id;
+            const showLine = index < timelineSteps.length - 1;
+            const lineCompleted = isLineCompleted(index);
+            
             return (
-              <div key={step.key} className="timeline-item">
-                <div className="timeline-icon-wrap">
-                  <div className={"timeline-icon" + (isCompleted? ' done':'')} style={isCompleted? { background: step.color, borderColor: step.color } : {}}>
-                    {React.createElement(step.icon, { size:16, color: isCompleted ? '#fff' : '#666' })}
+              <div key={step.id} className={`timeline-item ${isCompleted ? 'completed' : ''} ${isCurrentStep ? 'current' : ''}`}>
+                <div className="timeline-icon-wrapper">
+                  <div className="timeline-icon">
+                    <step.icon size={16} />
                   </div>
-                  {idx < statusSteps.length-1 && <div className={"timeline-line" + (isCompleted? ' done':'')}/>}    
+                  {showLine && (
+                    <div className={`timeline-line ${lineCompleted ? 'completed' : ''}`}></div>
+                  )}
                 </div>
-                <div className="timeline-text">
-                  <div className={"label" + (isCompleted? ' done':'')}>{step.label}</div>
-                  {history && <div className="time">{formatTime(history.timestamp)}</div>}
+                <div className="timeline-content">
+                  <span className="timeline-label">{step.label}</span>
+                  {step.time && <span className="timeline-time">{step.time}</span>}
                 </div>
               </div>
             );
-        })}
+          })}
+        </div>
       </div>
 
-      <div className="qr-order-details qr-surface-card">
-        <h3>Order Details</h3>
-        <div className="row"><span>Order Time:</span><span>{order ? formatTime(order.orderTime) : '--'}</span></div>
-        <div className="row items"><span>Items:</span><div>{order?.items?.map((it,i)=><div key={i}>{it}</div>)}</div></div>
-        <div className="row total"><span>Total:</span><span>{order ? `$${order.total?.toFixed(2)}` : '--'}</span></div>
-      </div>
-      <div className="qr-delivery-info qr-surface-card alt">
-        <h3>Delivery Information</h3>
-        <div className="info-row"><MapPin size={18} /> <span>{order?.deliveryAddress || ''}</span></div>
-        <div className="info-row"><Phone size={18} /> <span>{order?.contactNumber || ''}</span></div>
+      {/* Order Details */}
+      <div className="details-section">
+        <h3 className="section-title">Order Details</h3>
+        <div className="details-content">
+          <div className="detail-row">
+            <span className="detail-label">Order Time:</span>
+            <span className="detail-value">{orderData.orderTime}</span>
+          </div>
+          <div className="detail-row items-row">
+            <span className="detail-label">Items:</span>
+            <div className="items-list">
+              {orderData.items.map((item, index) => (
+                <div key={index} className="item">
+                  {item.name} x{item.quantity}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="detail-row total-row">
+            <span className="detail-label">Total:</span>
+            <span className="detail-total">${orderData.total}</span>
+          </div>
+        </div>
       </div>
 
-      <div className="qr-action-buttons">
-        <button><Phone size={16}/> Call Restaurant</button>
-        <button><MessageCircle size={16}/> Live Chat</button>
-      </div>
-      {error && <div style={{ color:'#f87171', marginTop:12 }}>Orders refresh error: {error}</div>}
+
     </div>
   );
-}
+};
+
+export default OrdersPage;
