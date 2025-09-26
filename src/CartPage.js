@@ -4,7 +4,9 @@ import './shared.css';
 import { Plus, Minus, Trash2, ShoppingCart } from 'lucide-react';
 
 export default function CartPage({ cart = [], setCart, onCheckout }) {
-  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Track in-progress text edits for quantity inputs so user can clear to blank without item removal
+  const [editingQty, setEditingQty] = useState({}); // { id: 'string' }
 
   const totalItems = useMemo(()=> cart.reduce((s,i)=>s+i.quantity,0), [cart]);
   const subtotal = useMemo(()=> cart.reduce((s,i)=>s + i.price * i.quantity,0), [cart]);
@@ -12,9 +14,30 @@ export default function CartPage({ cart = [], setCart, onCheckout }) {
   const delivery = cart.length ? 3.99 : 0;
   const grandTotal = subtotal + tax + delivery;
 
-  const updateQty = (id, change) => {
+  const commitQty = (id, newQty) => {
     setCart(prev => prev
-      .map(it => it.id === id ? { ...it, quantity: Math.max(0, it.quantity + change) } : it)
+      .map(it => it.id === id ? { ...it, quantity: newQty } : it)
+      .filter(it => it.quantity > 0)
+    );
+  };
+
+  const updateQty = (id, change) => {
+    // Commit any pending edit first
+    if (editingQty[id] !== undefined) {
+      let base = 0;
+      const txt = editingQty[id];
+      if (txt && /^\d+$/.test(txt)) base = parseInt(txt, 10);
+      commitQty(id, base);
+      setEditingQty(prev => { const n = { ...prev }; delete n[id]; return n; });
+    }
+    setCart(prev => prev
+      .map(it => {
+        if (it.id === id) {
+          const nextQ = Math.max(0, it.quantity + change);
+          return { ...it, quantity: nextQ };
+        }
+        return it;
+      })
       .filter(it => it.quantity > 0)
     );
   };
@@ -41,43 +64,64 @@ export default function CartPage({ cart = [], setCart, onCheckout }) {
             <div className="info">
               <h4>{item.name}</h4>
               {item.customizations?.length && <p className="customs">{item.customizations.join(', ')}</p>}
-              <div className="price">${item.price}</div>
+              <div className="price">₹{item.price}</div>
             </div>
             <div className="qty">
               <button onClick={()=>updateQty(item.id,-1)}><Minus size={14}/></button>
-              <span>{item.quantity}</span>
+              <input
+                type="number"
+                className="qty-input"
+                min={0}
+                step={1}
+                value={editingQty[item.id] !== undefined ? editingQty[item.id] : String(item.quantity)}
+                onFocus={(e)=>{
+                  // Enter edit mode; if quantity is 0 show blank else show number
+                  if (editingQty[item.id] === undefined) {
+                    setEditingQty(prev => ({ ...prev, [item.id]: item.quantity === 0 ? '' : String(item.quantity) }));
+                  }
+                }}
+                onChange={(e)=>{
+                  const raw = e.target.value;
+                  if (/^\d{0,4}$/.test(raw)) {
+                    setEditingQty(prev => ({ ...prev, [item.id]: raw }));
+                  }
+                }}
+                onKeyDown={(e)=>{
+                  if (e.key === 'Enter') { e.currentTarget.blur(); }
+                }}
+                onBlur={()=>{
+                  const txt = editingQty[item.id];
+                  if (txt !== undefined) {
+                    let num = txt === '' ? 0 : parseInt(txt, 10);
+                    if (isNaN(num)) num = 0;
+                    num = Math.max(0, Math.min(9999, num));
+                    if (num !== item.quantity) {
+                      commitQty(item.id, num);
+                    }
+                    setEditingQty(prev => { const n = { ...prev }; delete n[item.id]; return n; });
+                  }
+                }}
+              />
               <button onClick={()=>updateQty(item.id,1)}><Plus size={14}/></button>
             </div>
             <button className="remove" onClick={()=>removeItem(item.id)}><Trash2 size={18} color="#ff4444" /></button>
           </div>
         ))}
       </div>
-      <div className="qr-summary">
-        <div className="row"><span>Subtotal:</span><span>${subtotal.toFixed(2)}</span></div>
-        <div className="row"><span>Tax (8%):</span><span>${tax.toFixed(2)}</span></div>
-        <div className="row"><span>Delivery:</span><span>${delivery.toFixed(2)}</span></div>
-        <div className="row total"><span>Total:</span><span>${grandTotal.toFixed(2)}</span></div>
-      </div>
-      <button className="checkout-btn" onClick={()=> setShowConfirm(true)}>Proceed to Checkout</button>
+      {/* Spacer to prevent list bottom getting hidden behind fixed summary */}
+      <div style={{ height: '220px' }} />
 
-      {showConfirm && (
-        <div className="qr-modal-backdrop center" onClick={()=>setShowConfirm(false)}>
-          <div className="qr-modal small" onClick={e=>e.stopPropagation()}>
-            <h3>Confirm Your Order</h3>
-            <p>Total: ${grandTotal.toFixed(2)}</p>
-            <p>Items: {totalItems}</p>
-            <p>Estimated delivery: 30-45 minutes</p>
-            <div className="qr-actions">
-              <button onClick={()=>setShowConfirm(false)} className="secondary">Cancel</button>
-              <button onClick={()=>{ 
-                // Call onCheckout to navigate to PaymentPage
-                onCheckout && onCheckout({ cart, total: grandTotal });
-                setShowConfirm(false); 
-              }}>Confirm</button>
-            </div>
-          </div>
+      <div className="cart-sticky-summary">
+        <div className="qr-summary">
+          <div className="row"><span>Subtotal:</span><span>₹{subtotal.toFixed(2)}</span></div>
+          <div className="row"><span>Tax (8%):</span><span>₹{tax.toFixed(2)}</span></div>
+            <div className="row"><span>Delivery:</span><span>₹{delivery.toFixed(2)}</span></div>
+          <div className="row total"><span>Total:</span><span>₹{grandTotal.toFixed(2)}</span></div>
         </div>
-      )}
+        <button className="checkout-btn" onClick={()=> {
+          onCheckout && onCheckout({ cart, total: grandTotal });
+        }}>Proceed to Checkout</button>
+      </div>
     </div>
   );
 }

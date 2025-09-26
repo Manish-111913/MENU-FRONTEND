@@ -2,16 +2,20 @@
 
 /* Theming wrapper enables palette overrides without touching component markup */
 .qr-billing-theme {
-    --qr-color-bg: #111;
-    --qr-color-surface: #222;
-    --qr-color-surface-alt: #1a1a1a;
-    --qr-color-border: #333;
+    /* Dark theme variables */
+    --qr-color-bg: #0a0a0a; /* main screen background - very dark black */
+    --qr-color-surface: #1a1a1a; /* cards / modal surfaces - lighter black */
+    --qr-color-surface-alt: #2a2a2a; /* subtle alternation */
+    --qr-color-border: #333333;
     --qr-color-accent: #fbbf24;
     --qr-color-accent-rgb: 251, 191, 36;
-    --qr-color-danger: #ff4444;
-    --qr-color-text: #fff;
-    --qr-color-text-dim: #ccc;
-    --qr-color-muted: #666;
+    --qr-color-danger: #d92e2e;
+    --qr-color-text: #ffffff; /* primary text - white for dark theme */
+    --qr-color-text-dim: #cccccc; /* secondary text - light gray */
+    --qr-color-muted: #888888;
+  /* Unified shell sizing */
+  --qr-shell-width: 600px; /* single source of truth for main content width */
+  --qr-shell-gutter: 16px; /* horizontal breathing room on very narrow screens */
     color-scheme: dark;
 }
 
@@ -92,8 +96,8 @@ body.qr-billing-active::-webkit-scrollbar {
 }
 
 .qr-tabbar-inner {
-    width: 100%;
-    max-width: 600px;
+  width: 100%;
+  max-width: var(--qr-shell-width, 600px);
     padding: 0;
     pointer-events: none;
     margin: 0 auto;
@@ -146,11 +150,12 @@ body.qr-billing-active::-webkit-scrollbar {
 .qr-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .8);
+    background: rgba(0, 0, 0, 0.85);
     display: flex;
     justify-content: center;
-    align-items: flex-end;
+    align-items: center;
     z-index: 1000;
+    padding: 16px;
 }
 
 .qr-modal-backdrop.center {
@@ -159,14 +164,30 @@ body.qr-billing-active::-webkit-scrollbar {
 }
 
 .qr-modal {
-    background: #222;
-    width: 100%;
-    max-width: 520px;
-    max-height: 80%;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
+    background: #2a2a2a;
+    width: 75%;
+    height: 75%;
+    max-width: none;
+    max-height: none;
+    border-radius: 16px;
     overflow-y: auto;
     animation: slideUp .25s ease;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hide scrollbar but keep scroll (WebKit) */
+.qr-modal::-webkit-scrollbar {
+    width: 0; height: 0;
+}
+/* Firefox */
+.qr-modal {
+    scrollbar-width: none; /* hide */
+}
+/* Edge/others (experimental) */
+.qr-modal {
+    -ms-overflow-style: none;
 }
 
 .qr-modal.small {
@@ -226,63 +247,166 @@ body.qr-billing-active::-webkit-scrollbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #333;
+    padding: 20px 24px;
+    border-bottom: none;
+    background: #2a2a2a;
+    border-radius: 16px 16px 0 0;
 }
 
 .qr-modal-head h3 {
     margin: 0;
-    color: #fff;
-    font-size: 20px;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
 .qr-modal-head button {
     background: none;
     border: none;
-    color: #fff;
+    color: #ffffff;
     cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.qr-modal-head button:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .qr-modal-img {
     width: 100%;
-    height: 240px;
+    height: 280px;
     object-fit: cover;
     display: block;
+    border-radius: 0;
 }
 
 .qr-modal p {
-    padding: 20px;
-    color: #ccc;
-    font-size: 14px;
-    line-height: 1.4;
+    padding: 20px 24px 12px 24px;
+    color: #cccccc;
+    font-size: 15px;
+    line-height: 1.5;
     margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
 .qr-modal h5 {
-    padding: 0 20px;
-    color: #fff;
-    margin: 12px 0 6px;
-    font-size: 15px;
+    padding: 16px 24px 8px 24px;
+    color: #ffffff;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
 .qr-customizations {
-    list-style: none;
     margin: 0;
-    padding: 0 20px 0 20px;
+    padding: 0 24px 24px 24px;
+    max-height: none;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 40px;
+    border-top: none;
 }
 
-.qr-customizations li {
-    padding: 8px 0;
-    border-bottom: 1px solid #333;
+.qr-customization-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+    cursor: pointer;
+    font-size: 16px;
+    color: #cccccc;
+    font-family: system-ui, -apple-system, sans-serif;
+    transition: color 0.2s ease;
+}
+
+.qr-customization-item:hover {
+    color: #ffffff;
+}
+
+.qr-customization-item input[type="checkbox"] {
+    display: none;
+}
+
+.qr-checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #666666;
+    border-radius: 4px;
+    background: #2a2a2a;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.qr-customization-item input[type="checkbox"]:checked + .qr-checkbox-custom {
+    background: #fbbf24;
+    border-color: #fbbf24;
+}
+
+.qr-customization-item input[type="checkbox"]:checked + .qr-checkbox-custom::after {
+    content: '✓';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: #000000;
     font-size: 14px;
-    color: #ccc;
+    font-weight: bold;
+}
+
+.qr-customization-text {
+    flex: 1;
+    user-select: none;
+    font-weight: 400;
+}
+
+.qr-confirm-customizations-btn {
+    background: #fbbf24;
+    color: #000000;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    width: 100%;
+    transition: all 0.2s ease;
+    font-family: system-ui, -apple-system, sans-serif;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.qr-confirm-customizations-btn:hover {
+    background: #f59e0b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
+}
+
+.qr-confirm-customizations-btn:active {
+    background: #d97706;
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
 }
 
 .qr-modal-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 16px 20px 20px;
+    position: sticky; /* keep it visible while scrolling customizations */
+    bottom: 0;
+    background: #1d1d1d;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
+    margin-top: 4px;
 }
 
 .modal-price {
@@ -306,11 +430,388 @@ body.qr-billing-active::-webkit-scrollbar {
 }
 
 /* Background gradient for visual depth */
+/* Background layer (now dark to blend edges) */
 .qr-billing-theme:before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(to right, #000 0%, #0b0b0b 20%, #0b0b0b 80%, #000 100%);
-    pointer-events: none;
-    z-index: -1;
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: #0a0a0a; /* dark root background */
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Ensure the entire viewport (outside centered container) is white */
+html, body {
+  background: #0a0a0a; /* match app dark backdrop */
+  color: #fff;
+  margin: 0; /* remove default margin that can show background seams */
+  padding: 0;
+}
+
+/* Hide scrollbars globally */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Enhanced Modal Overlay for Customization */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-end; /* bottom sheet style */
+  justify-content: center; /* horizontal center */
+  z-index: 1000;
+  padding: 0 0 60px 0; /* 60px footer space so modal bottom aligns just above footer */
+}
+
+/* Menu Item Modal */
+.menu-item-modal {
+  background-color: #1f1f1f;
+  border-radius: 16px 16px 0 0;
+  width: var(--qr-shell-width, 600px);
+  max-width: calc(100vw - var(--qr-shell-gutter,16px)*2);
+  height: auto;
+  max-height: 75vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUpFromBottom 0.3s ease-out;
+  box-shadow: 0 8px 28px -8px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+/* Close Button - Top Right Corner */
+.close-btn-top-right {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  width: 32px;
+  height: 32px;
+  z-index: 1001;
+}
+
+.close-btn-top-right:hover {
+  opacity: 0.7;
+}
+
+.close-btn-top-right .close-icon {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 300;
+}
+
+/* Item Header */
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 16px 24px;
+  border-bottom: none;
+  position: sticky; /* remain visible while body scrolls */
+  top: 0;
+  z-index: 5;
+  background: #1f1f1f; /* same as modal surface */
+  box-shadow: 0 2px 4px -2px rgba(0,0,0,0.5);
+}
+
+.item-header .item-name {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  flex: 1;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.close-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+@keyframes slideUpFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Item Image */
+.item-image-container {
+  position: relative;
+  width: 100%;
+  height: 300px; /* restored fixed height */
+  overflow: hidden;
+  border-radius: 0;
+  background: #000; /* base behind blur */
+}
+
+/* Blurred cover background using same image */
+.item-image-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--modal-image-url);
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) brightness(0.5);
+  transform: scale(1.15); /* enlarge so blur edges not visible */
+  pointer-events: none;
+}
+
+/* Optional dark overlay to increase contrast */
+.item-image-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.55));
+  pointer-events: none;
+}
+
+.item-image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* show full image */
+  object-position: center;
+  z-index: 1; /* above blurred bg */
+  display: block;
+}
+
+/* Item Content */
+.item-content {
+  padding: 20px;
+  color: #fff;
+}
+
+.item-description {
+  color: #a0a0a0;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* Customizations */
+.customizations-section {
+  margin-bottom: 24px;
+}
+
+.customizations-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.customization-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.customization-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.customization-checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #fbbf24;
+  border-radius: 3px;
+  margin-right: 12px;
+  position: relative;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.customization-checkbox:checked {
+  background-color: #fbbf24;
+}
+
+.customization-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.customization-text {
+  color: #fff;
+  font-size: 14px;
+}
+
+/* Confirm Customization Button */
+.confirm-customization-btn {
+  background-color: #fbbf24;
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+  margin-top: 0px;
+}
+
+.confirm-customization-btn:hover {
+  background-color: #f59e0b;
+  transform: translateY(-1px);
+}
+
+.confirm-customization-btn:active {
+  transform: translateY(0);
+}
+
+/* Item Footer */
+.item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+.price-time-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-price {
+  color: #fbbf24;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.prep-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-icon {
+  color: #fbbf24;
+  font-size: 14px;
+}
+
+.time-text {
+  color: #a0a0a0;
+  font-size: 12px;
+}
+
+/* Add to Cart Button */
+.add-to-cart-btn {
+  background-color: #fbbf24;
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #f59e0b;
+  transform: translateY(-1px);
+}
+
+.add-to-cart-btn:active {
+  transform: translateY(0);
+}
+
+.add-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0 0 60px 0; /* Account for mobile footer */
+  }
+  
+  .menu-item-modal {
+    max-width: 100%;
+    margin: 0;
+    height: auto;
+    max-height: 75vh;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .item-content {
+    padding: 16px;
+  }
+  
+  .item-footer {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .add-to-cart-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .price-time-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .item-image-container {
+    height: 120px;
+  }
 }
