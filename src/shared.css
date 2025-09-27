@@ -304,6 +304,13 @@ body.qr-billing-active::-webkit-scrollbar {
     font-family: system-ui, -apple-system, sans-serif;
 }
 
+/* Centered description override */
+.qr-modal-desc.centered {
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
 .qr-customizations {
     margin: 0;
     padding: 0 24px 24px 24px;
@@ -314,6 +321,72 @@ body.qr-billing-active::-webkit-scrollbar {
     gap: 16px;
     min-height: 40px;
     border-top: none;
+}
+
+/* When selectable (checkbox list) */
+.qr-customizations.selectable li {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.qr-customization-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ddd;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+  text-align: left; /* ensure left alignment */
+}
+
+.qr-customization-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--qr-color-accent, #fbbf24);
+  border-radius: 4px;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qr-customization-option input[type="checkbox"]:checked {
+  background: transparent; /* no fill */
+  box-shadow: none;
+}
+
+.qr-customization-option input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #ffffff; /* white tick */
+  border-bottom: 2px solid #ffffff;
+  transform: translate(-50%, -55%) rotate(-45deg);
+}
+
+/* Improve focus/hover clarity */
+.qr-customization-option input[type="checkbox"]:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Ensure list items in selectable group align left */
+.qr-customizations.selectable li {
+  text-align: left;
+}
+
+.qr-customization-option:hover span {
+  color: #fff;
 }
 
 .qr-customization-item {

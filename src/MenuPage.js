@@ -450,14 +450,31 @@ export default function MenuPage({ onSelectAdd, onQuantityChange, quantities = {
               <h2 className="item-name">{modalItem.name}</h2>
             </div>
             <img src={modalItem.image || placeholderImg} onError={e=>{ if(e.target.dataset.fallback!=='1'){ e.target.dataset.fallback='1'; e.target.src=placeholderImg; }}} alt={modalItem.name} className="qr-modal-img" />
-            <p>{modalItem.description}</p>
-            <h5>Customizations</h5>
-            <ul className="qr-customizations">
-              {modalItem.customizations?.map((c,i)=>(<li key={i}>{c}</li>))}
+            <p className="qr-modal-desc centered">{modalItem.description}</p>
+            <h5>Customizations:</h5>
+            <ul className="qr-customizations selectable">
+              {modalItem.customizations?.map((c,i)=>(
+                <li key={i}>
+                  <label className="qr-customization-option">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedCustomizations[c]}
+                      onChange={()=>handleCustomizationChange(c)}
+                    />
+                    <span>{c}</span>
+                  </label>
+                </li>
+              ))}
             </ul>
             <div className="qr-modal-footer">
               <div className="modal-price">₹{modalItem.price}</div>
-              <button className="add-btn" onClick={()=>{ updateQty(modalItem.id,1); onSelectAdd && onSelectAdd(modalItem); setModalItem(null); }}> <Plus size={16}/> Add to Cart</button>
+              <button className="add-btn" onClick={()=>{ 
+                const selected = Object.entries(selectedCustomizations).filter(([,v])=>v).map(([k])=>k);
+                const enriched = { ...modalItem, customizations: selected.length? selected : modalItem.customizations };
+                updateQty(modalItem.id,1); 
+                onSelectAdd && onSelectAdd(enriched); 
+                setModalItem(null); 
+              }}> <Plus size={16}/> Add to Cart</button>
             </div>
           </div>
         </div>

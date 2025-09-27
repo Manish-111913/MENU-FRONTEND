@@ -254,6 +254,32 @@
     box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
 }
 
+/* Fixed footer with summary + checkout */
+.qr-cart-fixed-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--qr-tabbar-height, 60px) + 8px);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+    max-width: var(--qr-shell-width, 600px);
+    margin: 0 auto;
+    padding: 0 16px; /* inner horizontal gutter */
+    box-sizing: border-box;
+    z-index: 1150;
+    pointer-events: none; /* allow internal components to handle events */
+}
+
+.qr-cart-fixed-footer .qr-summary, .qr-cart-fixed-footer .checkout-btn {
+    pointer-events: auto; /* re-enable inside */
+}
+
+.qr-cart-fixed-footer .qr-summary {
+    margin: 0;
+}
+
 /* Fixed summary + checkout wrapper */
 .cart-sticky-summary {
         position: fixed;

@@ -50,7 +50,10 @@
     border-radius: 12px;
     padding: 8px 12px;
     gap: 8px;
-    margin-bottom: 12px;
+    margin: 0 auto 12px auto; /* center horizontally */
+    width: 100%;
+    max-width: var(--qr-shell-width, 600px); /* match footer max width */
+    box-sizing: border-box; /* include padding inside 600px */
 }
 
 .qr-search-bar input {
@@ -669,19 +672,23 @@
 .qr-order-summary {
     position: fixed;
     bottom: 60px; /* Position above the footer/tabbar */
-    left: 50%;
-    transform: translateX(-50%);
-    width: var(--qr-shell-width, 600px);
-    max-width: calc(100vw - var(--qr-shell-gutter,16px)*2); /* Responsive fallback */
+    left: 0;
+    right: 0;
+    margin: 0 auto; /* center within viewport like tabbar-inner */
+    width: 100%;
+    max-width: var(--qr-shell-width, 600px); /* exact same max width as footer */
     background: #1a1a1a;
-    border-top: 1px solid #333;
-    border-radius: 12px 12px 0 0;
+    border: 1px solid #333;
+    border-bottom: none; /* visually connect to space above like footer style */
+    border-top-left-radius: 18px; /* match footer curvature */
+    border-top-right-radius: 18px;
     padding: 16px 20px;
+    box-sizing: border-box; /* ensure padding stays within 600px */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 1000;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1100;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255,255,255,0.02);
 }
 
 .qr-bill-summary {

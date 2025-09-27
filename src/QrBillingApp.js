@@ -90,7 +90,14 @@ export default function QrBillingApp() {
       <div className="qr-shell">
       <div className="qr-tabs-content">
         <div className="qr-content">
-          {tab === 'menu' && <MenuPage onSelectAdd={handleAdd} onQuantityChange={(item, qty)=>updateItemQuantity(item, qty)} quantities={cartQuantities} />}
+          {tab === 'menu' && (
+            <MenuPage
+              onSelectAdd={handleAdd}
+              onQuantityChange={(item, qty)=>updateItemQuantity(item, qty)}
+              quantities={cartQuantities}
+              onNavigateToCart={()=>setTab('cart')}
+            />
+          )}
           {tab === 'cart' && <CartPage cart={cart} setCart={setCart} onCheckout={handleConfirmOrder} />}
           {tab === 'payment' && <PaymentPage orderData={orderData} onPaymentComplete={handlePaymentComplete} onBack={() => setTab('cart')} onPaymentSuccess={handlePaymentSuccess} />}
           {tab === 'payment-success' && <PaymentSuccessPage orderData={orderData} onComplete={handlePaymentComplete} />}

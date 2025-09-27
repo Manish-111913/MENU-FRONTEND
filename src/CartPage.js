@@ -22,8 +22,7 @@ export default function CartPage({ cart = [], setCart, onCheckout }) {
   const delivery = cart.length ? 30 : 0; // use whole-number INR style
   const grandTotal = subtotal + tax + delivery;
 
-  // Confirmation modal state (was missing causing runtime errors)
-  const [showConfirm, setShowConfirm] = useState(false);
+  // Removed confirmation modal; checkout now proceeds immediately.
 
   const commitQty = (id, newQty) => {
     setCart(prev => prev
@@ -113,33 +112,25 @@ export default function CartPage({ cart = [], setCart, onCheckout }) {
             <button className="remove" onClick={()=>removeItem(item.id)}><Trash2 size={18} color="#ff4444" /></button>
           </div>
         ))}
+        {/* Spacer so last items not hidden behind fixed footer */}
+        <div style={{ height: '210px' }} />
       </div>
-      <div className="qr-summary">
-        <div className="row"><span>Subtotal:</span><span>₹{subtotal.toFixed(2)}</span></div>
-        <div className="row"><span>Tax (8%):</span><span>₹{tax.toFixed(2)}</span></div>
-        <div className="row"><span>Delivery:</span><span>₹{delivery.toFixed(2)}</span></div>
-        <div className="row total"><span>Total:</span><span>₹{grandTotal.toFixed(2)}</span></div>
-      </div>
-      <button className="checkout-btn" onClick={()=> { logFlow('checkout-click', { items: cart.length, total: grandTotal }); setShowConfirm(true); }}>Proceed to Checkout</button>
 
-      {showConfirm && (
-        <div className="qr-modal-backdrop center" onClick={()=>{ logFlow('dismiss-confirm'); setShowConfirm(false); }}>
-          <div className="qr-modal small" onClick={e=>e.stopPropagation()}>
-            <h3>Confirm Your Order</h3>
-            <p>Total: ₹{grandTotal.toFixed(2)}</p>
-            <p>Items: {totalItems}</p>
-            <p>Estimated delivery: 30-45 minutes</p>
-            <div className="qr-actions">
-              <button onClick={()=>{ logFlow('cancel-confirm'); setShowConfirm(false);} } className="secondary">Cancel</button>
-              <button onClick={()=>{ 
-                logFlow('confirm-order', { items: cart.length, total: grandTotal });
-                onCheckout && onCheckout({ cart, total: grandTotal });
-                setShowConfirm(false); 
-              }}>Confirm</button>
-            </div>
-          </div>
+      <div className="qr-cart-fixed-footer">
+        <div className="qr-summary">
+          <div className="row"><span>Subtotal:</span><span>₹{subtotal.toFixed(2)}</span></div>
+          <div className="row"><span>Tax (8%):</span><span>₹{tax.toFixed(2)}</span></div>
+          <div className="row"><span>Delivery:</span><span>₹{delivery.toFixed(2)}</span></div>
+          <div className="row total"><span>Total:</span><span>₹{grandTotal.toFixed(2)}</span></div>
         </div>
-      )}
+        <button
+          className="checkout-btn"
+          onClick={()=> {
+            logFlow('checkout-click-immediate', { items: cart.length, total: grandTotal });
+            onCheckout && onCheckout({ cart, total: grandTotal });
+          }}
+        >Proceed to Checkout</button>
+      </div>
     </div>
   );
 }
