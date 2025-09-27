@@ -194,8 +194,12 @@ const PaymentPage = ({ orderData, onPaymentComplete, onBack, onPaymentSuccess })
           <div className="payment-method-section">
             <h3 className="section-title">Payment Method</h3>
             
+            <button className="payment-btn split-bill-btn" onClick={handlePayNow}>
+              👥 Split Bill
+            </button>
+            
             <button className="payment-btn primary-btn" onClick={handlePayNow}>
-              Pay Now (UPI, Paytm, Google Pay)
+              Pay Now(UPI,Paytm,Google Pay)
             </button>
             
             <button className="payment-btn secondary-btn" onClick={handlePayAtCounter}>

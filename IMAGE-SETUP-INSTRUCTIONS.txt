@@ -1,0 +1,14 @@
+<!-- 
+To use the payment success background image:
+
+1. Save the image from the attachment as "payment-success-bg.jpg"
+2. Place it in the public folder: d:\Menu\MENU-FRONTEND\public\payment-success-bg.jpg
+3. The CSS is already configured to use this image
+
+The image path in CSS: url('/payment-success-bg.jpg')
+This will load from the public folder when the app runs.
+
+If you prefer to place the image in the src folder instead:
+1. Save as: d:\Menu\MENU-FRONTEND\src\payment-success-bg.jpg  
+2. Update the CSS path to: url('./payment-success-bg.jpg')
+-->
