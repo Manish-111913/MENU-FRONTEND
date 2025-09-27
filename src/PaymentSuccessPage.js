@@ -60,25 +60,7 @@ const PaymentSuccessPage = ({ orderData, onComplete }) => {
         const raw = await resp.text();
         let json = null; try { json = raw?JSON.parse(raw):null; } catch(_e) {}
         logFlow('mark-paid-response', { status: resp.status, json });
-        if (!resp.ok) {
-          if (json?.error === 'NO_ORDER') {
-            logFlow('NO_ORDER-fallback-checkout');
-            try {
-              const co = await fetch(`${apiBase}/api/checkout`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ businessId, tableNumber, qrId, items: orderData?.items||[], total: totalAmount })});
-              const coraw = await co.text();
-              let cojson=null; try { cojson = coraw?JSON.parse(coraw):null; } catch(_e) {}
-              logFlow('fallback-checkout-response', { status: co.status, cojson });
-              if (co.ok) {
-                const retry = await fetch(`${apiBase}/api/qr/mark-paid`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ businessId, tableNumber, sessionId: cojson?.sessionId, qrId: cojson?.qrId, totalAmount }) });
-                const rraw = await retry.text();
-                let rjson=null; try { rjson = rraw?JSON.parse(rraw):null; } catch(_e) {}
-                logFlow('retry-mark-paid-response', { status: retry.status, rjson });
-                if (retry.ok && rjson?.success) { if (!aborted) setMarkStatus('success'); return; }
-              }
-            } catch(fbErr) { logFlow('fallback-failed', { message: fbErr.message }); }
-          }
-          throw new Error('mark-paid failed');
-        }
+        if (!resp.ok) throw new Error('mark-paid failed');
         if (!aborted) setMarkStatus(json?.success ? 'success' : 'error');
       } catch (e) {
         if (!aborted) { setMarkStatus('error'); logFlow('mark-paid-error', { message: e.message }); }

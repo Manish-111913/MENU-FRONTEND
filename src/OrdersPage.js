@@ -1,9 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import './OrdersPage.css';
 import './shared.css';
-import { Package, Clock, Truck, CheckCircle2 } from 'lucide-react';
+import { Package, Clock, Truck, CheckCircle2, RefreshCw } from 'lucide-react';
+import { qrLog } from './logger';
 
 const OrdersPage = ({ sessionId, businessId }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const apiBase = process.env.REACT_APP_API_BASE || '';
+
+  const load = async () => {
+    try {
+      setRefreshing(true);
+      const url = `${apiBase}/api/orders?businessId=${businessId || ''}${sessionId? `&sessionId=${sessionId}`:''}&limit=25`;
+      qrLog('ORDERS', 'fetch', url);
+      const r = await fetch(url);
+      const raw = await r.text();
+      let json = null; try { json = raw ? JSON.parse(raw) : null; } catch(parseErr){ qrLog('ORDERS','parse-error',{parseErr:parseErr.message, raw}); }
+      if (!r.ok) throw new Error(json?.error || `HTTP ${r.status}`);
+      setOrders(json.orders || []);
+      setError(null);
+    } catch(e) {
+      setError(e.message);
+    } finally { setLoading(false); setRefreshing(false); }
+  };
+
+  useEffect(()=>{ load(); // initial
+    const id = setInterval(load, 15000); // auto-refresh every 15s
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, businessId]);
   // Timeline steps definition
   const timelineSteps = [
     { 
@@ -33,42 +61,57 @@ const OrdersPage = ({ sessionId, businessId }) => {
   ];
 
   // Mock data to match the images exactly
-  const orderData = {
-    orderId: '#ORD-2024-001',
-    status: 'ready',
-    statusText: 'Order ready for pickup',
-    estimatedDelivery: '25 minutes',
-    orderTime: '10:30 PM',
-    items: [
-      { name: 'Crispy Calamari', quantity: 2 },
-      { name: 'Grilled Salmon', quantity: 1 },
-      { name: 'Chocolate Lava Cake', quantity: 1 }
-    ],
-    total: 44.47
-  };
+  const latest = orders[0];
+  const orderData = latest ? {
+    orderId: `#ORD-${latest.order_id}`,
+    status: (latest.status||'').toLowerCase(),
+    statusText: latest.payment_status === 'paid' ? 'Payment Complete' : 'Order Placed',
+    estimatedDelivery: latest.estimated_ready_time ? 'Soon' : '—',
+    orderTime: latest.placed_at ? new Date(latest.placed_at).toLocaleTimeString() : '—',
+    items: [],
+    total: 0
+  } : null;
 
   // Function to determine if a step is completed based on current status
   const isStepCompleted = (stepId) => {
-    const currentStepIndex = timelineSteps.findIndex(step => step.id === orderData.status);
+    if (!orderData) return false;
+    const currentStepIndex = timelineSteps.findIndex(step => step.id === orderData.status) || 0;
     const stepIndex = timelineSteps.findIndex(step => step.id === stepId);
+    if (stepIndex === -1) return false;
     return stepIndex <= currentStepIndex;
   };
 
   // Function to determine if connecting line should be golden
   const isLineCompleted = (stepIndex) => {
-    const currentStepIndex = timelineSteps.findIndex(step => step.id === orderData.status);
+    if (!orderData) return false;
+    const currentStepIndex = timelineSteps.findIndex(step => step.id === orderData.status) || 0;
     return stepIndex < currentStepIndex;
   };
 
+  if (loading) return <div className="order-tracking-container"><h3>Loading orders…</h3></div>;
+  if (error) return <div className="order-tracking-container"><h3>Error</h3><p>{error}</p><button onClick={load}>Retry</button></div>;
+
+  const containerColorClass = latest?.color ? `color-${latest.color}` : '';
+
   return (
-    <div className="order-tracking-container">
-      {/* Header */}
-      <div className="tracking-header">
-        <h1 className="tracking-title">Order Tracking</h1>
-        <span className="order-number">{orderData.orderId}</span>
+    <div className={`order-tracking-container ${containerColorClass}`}>
+      <div style={{display:'flex', justifyContent:'flex-end', gap:8}}>
+        <button className="qr-filter-toggle" onClick={load} disabled={refreshing}>
+          <RefreshCw size={14} /> {refreshing? 'Refreshing…':'Refresh'}
+        </button>
       </div>
+      {/* Header */}
+      {orderData ? (
+        <div className="tracking-header" style={{borderColor: latest?.color==='green'?'#16a34a': latest?.color==='yellow'?'#fbbf24':'#555'}}>
+          <h1 className="tracking-title">Order Tracking</h1>
+          <span className="order-number">{orderData.orderId}</span>
+          <span className={`status-chip ${latest?.color}`}>{latest?.payment_status}</span>
+          {latest?.table_number && <span className="status-chip table">Table {latest.table_number}</span>}
+        </div>
+      ) : <h2>No orders yet.</h2>}
 
       {/* Status Card */}
+      {orderData && (
       <div className="status-card">
         <div className="status-info">
           <div className="status-icon">
@@ -83,8 +126,10 @@ const OrdersPage = ({ sessionId, businessId }) => {
           <div className="progress-fill"></div>
         </div>
       </div>
+      )}
 
       {/* Order Progress */}
+      {orderData && (
       <div className="progress-section">
         <h3 className="section-title">Order Progress</h3>
         <div className="timeline">
@@ -112,9 +157,10 @@ const OrdersPage = ({ sessionId, businessId }) => {
             );
           })}
         </div>
-      </div>
+  </div>)}
 
       {/* Order Details */}
+      {orderData && (
       <div className="details-section">
         <h3 className="section-title">Order Details</h3>
         <div className="details-content">
@@ -138,6 +184,7 @@ const OrdersPage = ({ sessionId, businessId }) => {
           </div>
         </div>
       </div>
+      )}
 
 
     </div>

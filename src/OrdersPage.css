@@ -10,9 +10,14 @@
 /* Header */
 .tracking-header {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
   margin-bottom: 24px;
+  padding: 14px 16px;
+  border: 1px solid #333;
+  border-radius: 14px;
+  background: #222;
 }
 
 .tracking-title {
@@ -27,6 +32,53 @@
   font-size: 18px;
   font-weight: 600;
 }
+
+/* Status chips (dynamic color classes: green, yellow, ash, table) */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  background: #333;
+  color: #ddd;
+  border: 1px solid #444;
+  line-height: 1;
+}
+.status-chip + .status-chip { margin-left: 6px; }
+.status-chip.green {
+  background: rgba(22,163,74,.18);
+  border-color: #16a34a;
+  color: #22c55e;
+  box-shadow: 0 0 0 1px rgba(34,197,94,.25);
+}
+.status-chip.yellow {
+  background: rgba(251,191,36,.15);
+  border-color: #fbbf24;
+  color: #facc15;
+  box-shadow: 0 0 0 1px rgba(251,191,36,.25);
+}
+.status-chip.ash {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #999;
+}
+.status-chip.table {
+  background: #1f2937;
+  border-color: #334155;
+  color: #aec2d4;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* Optional container glow based on color (apply class color-green/yellow/ash on parent if desired) */
+.order-tracking-container.color-green { box-shadow: 0 0 0 2px rgba(34,197,94,.15), 0 0 22px -8px rgba(34,197,94,.35); }
+.order-tracking-container.color-yellow { box-shadow: 0 0 0 2px rgba(251,191,36,.15), 0 0 22px -8px rgba(251,191,36,.35); }
+.order-tracking-container.color-ash { box-shadow: 0 0 0 1px #333; }
 
 /* Status Card */
 .status-card {

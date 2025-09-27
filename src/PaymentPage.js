@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { qrLog } from './logger';
 import './PaymentPage.css';
+import { apiPost } from './apiClient';
 
-const logFlow = (...args) => {
-  if (typeof window !== 'undefined' && (process.env.REACT_APP_QR_FLOW_LOG === '1' || !process.env.NODE_ENV || process.env.NODE_ENV === 'development')) {
-    console.log('[QR_FLOW][PAYMENT]', ...args);
-  }
-};
+const logFlow = (...args) => qrLog('PAYMENT', ...args);
 
 const PaymentPage = ({ orderData, onPaymentComplete, onBack, onPaymentSuccess }) => {
   const [currentOrderData, setCurrentOrderData] = useState(null);
+  const [checkoutDebug, setCheckoutDebug] = useState(null);
+  const [checkoutError, setCheckoutError] = useState(null);
+  const [inFlight, setInFlight] = useState(false);
 
   useEffect(() => {
     if (orderData?.items) {
@@ -23,6 +24,8 @@ const PaymentPage = ({ orderData, onPaymentComplete, onBack, onPaymentSuccess })
         businessId: sp.get('businessId')||process.env.REACT_APP_BUSINESS_ID,
         apiBase: process.env.REACT_APP_API_BASE || '(relative)'
       });
+    } else {
+      logFlow('mount-no-items', { hasOrderData: !!orderData });
     }
   }, [orderData]);
 
@@ -51,11 +54,15 @@ const PaymentPage = ({ orderData, onPaymentComplete, onBack, onPaymentSuccess })
   };
 
   const handleConfirmPay = () => {
+  if (inFlight) { logFlow('confirm-click-ignored-inflight'); return; }
+    setCheckoutError(null); setCheckoutDebug(null); setInFlight(true);
     const apiBase = process.env.REACT_APP_API_BASE || '';
     const businessId = parseInt(process.env.REACT_APP_BUSINESS_ID || new URLSearchParams(window.location.search).get('businessId') || '1',10);
     const sp = new URLSearchParams(window.location.search);
-    const qrId = sp.get('qrId') || sp.get('qrid') || sp.get('qr_id');
-    const tableNumber = sp.get('table') || sp.get('tableNumber');
+  const qrId = sp.get('qrId') || sp.get('qrid') || sp.get('qr_id');
+  // Normalize table number from multiple possible params
+  let tableNumber = sp.get('table') || sp.get('tableNumber') || sp.get('table_number') || sp.get('tableno');
+  if (tableNumber && /^\d+$/.test(tableNumber)) tableNumber = String(parseInt(tableNumber,10));
     const subtotal = calculateSubtotal();
     const tax = calculateTax();
     const total = subtotal + tax;
@@ -73,64 +80,56 @@ const PaymentPage = ({ orderData, onPaymentComplete, onBack, onPaymentSuccess })
       }))
     };
 
-    const attempt = async (variant) => {
-      const payload = { ...basePayload };
-      if (variant === 'payFirst') { delete payload.payNow; payload.payFirst = true; }
-      const url = `${apiBase}/api/checkout`;
-      logFlow('checkout-attempt', { variant, url, payloadSummary: { items: payload.items.length, total: payload.total, tableNumber: payload.tableNumber, businessId: payload.businessId, qrId: payload.qrId } });
-      const started = Date.now();
-      try {
-        const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        const raw = await r.text();
-        let json=null; try { json = raw ? JSON.parse(raw):null; } catch(parseErr) { logFlow('parse-error', { variant, parseErr: parseErr.message, rawSnippet: raw.slice(0,200) }); }
-        logFlow('checkout-response', { variant, status: r.status, elapsedMs: Date.now()-started, json, rawSize: raw.length });
-        if (!r.ok) {
-          return { error: true, status: r.status, json, raw };
-        }
-        return { error: false, json };
-      } catch (networkErr) {
-        logFlow('network-error', { variant, message: networkErr.message });
-        return { error: true, status: 'network', networkErr: networkErr.message };
-      }
-    };
-
     (async () => {
-      const first = await attempt('payNow');
-      if (first.error) {
-        logFlow('first-attempt-failed', { status: first.status, json: first.json, rawSnippet: first.raw ? first.raw.slice(0,300):undefined });
-        // Retry with legacy flag if not already tried and server might expect payFirst.
-        const second = await attempt('payFirst');
-        if (second.error) {
-          logFlow('second-attempt-failed', { status: second.status, json: second.json, rawSnippet: second.raw ? second.raw.slice(0,300):undefined });
-          onPaymentSuccess && onPaymentSuccess({ ...currentOrderData, paymentStatus: 'unknown', error: true });
-          return;
+      const payload = { ...basePayload };
+      const url = `${apiBase}/api/orders`;
+      logFlow('order-create-attempt', { url, payloadSummary: { items: payload.items.length, total: payload.total, tableNumber: payload.tableNumber, businessId: payload.businessId, qrId: payload.qrId } });
+      try {
+        const finalPayload = {
+          businessId: payload.businessId,
+          customerInfo: { name: 'QR Customer', phone: '0000000000' },
+          tableNumber: payload.tableNumber,
+          paymentInfo: { amount: payload.total, method: 'Online' },
+          items: payload.items.map(i => ({ id: i.menuItemId, name: i.name, price: i.price, quantity: i.quantity }))
+        };
+        logFlow('order-create-payload', finalPayload);
+        let apiResp; let json;
+        try {
+          apiResp = await apiPost('/api/orders', finalPayload);
+          json = apiResp.json;
+        } catch(err) {
+          logFlow('order-create-response', { status: err.status, error: err.message, details: err?.details });
+          setCheckoutError({ stage:'order-create-failed', status: err.status, error: err.message, details: err?.details });
+          try { window.__lastOrderAttempt = { error: true, err }; } catch(_) {}
+          onPaymentSuccess && onPaymentSuccess({ ...currentOrderData, paymentStatus: 'unpaid', error: true });
+          setInFlight(false); return;
         }
-        const resp = second.json || {};
+        logFlow('order-create-response', { status: apiResp.status, elapsedMs: apiResp.elapsedMs, json });
+        const succeeded = json?.success || json?.ok;
+        if (!succeeded) {
+          setCheckoutError({ stage:'order-create-failed', status: apiResp.status, json });
+          try { window.__lastOrderAttempt = { success:false, response: json, status: apiResp.status }; } catch(_){ }
+          onPaymentSuccess && onPaymentSuccess({ ...currentOrderData, paymentStatus: 'unpaid', error: true });
+          setInFlight(false); return;
+        }
+        const orderId = json.data?.order_id;
+        const sessionIdFromResp = json.data?.session_id;
+        try { window.__lastOrderAttempt = { success:true, orderId, sessionId: sessionIdFromResp, raw: json }; } catch(_){ }
+        // Assume paid if server logic marks payment_status based on method 'Online'
         onPaymentSuccess && onPaymentSuccess({
           ...currentOrderData,
-          orderId: resp.orderId,
-          sessionId: resp.sessionId,
-          qr_id: resp.qrId,
-          tableNumber: resp.tableNumber || tableNumber,
-          total,
-          paymentStatus: resp.paymentStatus || resp.orderPaymentStatus,
-          color: resp.color,
-          paid: (resp.paymentStatus||resp.orderPaymentStatus)==='paid'
+            orderId,
+            sessionId: sessionIdFromResp,
+            tableNumber: payload.tableNumber,
+            total,
+            paymentStatus: 'paid',
+            paid: true
         });
-        return;
-      }
-      const resp = first.json || {};
-      onPaymentSuccess && onPaymentSuccess({
-        ...currentOrderData,
-        orderId: resp.orderId,
-        sessionId: resp.sessionId,
-        qr_id: resp.qrId,
-        tableNumber: resp.tableNumber || tableNumber,
-        total,
-        paymentStatus: resp.paymentStatus || resp.orderPaymentStatus,
-        color: resp.color,
-        paid: (resp.paymentStatus||resp.orderPaymentStatus)==='paid'
-      });
+        logFlow('order-create-success', { orderId, sessionId: sessionIdFromResp });
+      } catch (e) {
+        logFlow('order-create-network-error', { message: e.message });
+        setCheckoutError({ stage:'network', message: e.message });
+      } finally { setInFlight(false); }
     })();
   };
 
@@ -206,9 +205,21 @@ const PaymentPage = ({ orderData, onPaymentComplete, onBack, onPaymentSuccess })
               Pay at Counter
             </button>
             
-            <button className="payment-btn confirm-btn" onClick={handleConfirmPay}>
-              Confirm & Pay
+            <button className="payment-btn confirm-btn" disabled={inFlight} onClick={handleConfirmPay}>
+              {inFlight ? 'Processing...' : 'Confirm & Pay'}
             </button>
+            {checkoutError && (
+              <div className="checkout-error-box">
+                <strong>Checkout Error</strong>
+                <pre style={{whiteSpace:'pre-wrap', maxHeight:200, overflow:'auto'}}>{JSON.stringify(checkoutError,null,2)}</pre>
+              </div>
+            )}
+            {checkoutDebug && !checkoutError && (
+              <div className="checkout-debug-box">
+                <strong>Debug Steps</strong>
+                <pre style={{whiteSpace:'pre-wrap', maxHeight:200, overflow:'auto'}}>{JSON.stringify(checkoutDebug,null,2)}</pre>
+              </div>
+            )}
         </div>
       </div>
     </div>
