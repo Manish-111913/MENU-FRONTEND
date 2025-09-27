@@ -3,6 +3,13 @@ import './CartPage.css';
 import './shared.css';
 import { Plus, Minus, Trash2, ShoppingCart } from 'lucide-react';
 
+// Lightweight logger (disabled in production build unless explicitly enabled)
+const logFlow = (...args) => {
+  if (typeof window !== 'undefined' && (process.env.REACT_APP_QR_FLOW_LOG === '1' || !process.env.NODE_ENV || process.env.NODE_ENV === 'development')) {
+    console.log('[QR_FLOW][CART]', ...args);
+  }
+};
+
 export default function CartPage({ cart = [], setCart, onCheckout }) {
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -13,12 +20,15 @@ export default function CartPage({ cart = [], setCart, onCheckout }) {
   const grandTotal = subtotal + tax + delivery;
 
   const updateQty = (id, change) => {
-    setCart(prev => prev
-      .map(it => it.id === id ? { ...it, quantity: Math.max(0, it.quantity + change) } : it)
-      .filter(it => it.quantity > 0)
-    );
+    setCart(prev => {
+      const next = prev
+        .map(it => it.id === id ? { ...it, quantity: Math.max(0, it.quantity + change) } : it)
+        .filter(it => it.quantity > 0);
+      logFlow('qty-change', { id, change, resultingQty: next.find(i=>i.id===id)?.quantity, totalItems: next.reduce((s,i)=>s+i.quantity,0) });
+      return next;
+    });
   };
-  const removeItem = (id) => setCart(prev => prev.filter(i=>i.id!==id));
+  const removeItem = (id) => setCart(prev => { const next = prev.filter(i=>i.id!==id); logFlow('remove-item', { id, remaining: next.length }); return next; });
 
   if (!cart.length) return (
     <div className="qr-cart-empty">
@@ -58,19 +68,19 @@ export default function CartPage({ cart = [], setCart, onCheckout }) {
         <div className="row"><span>Delivery:</span><span>${delivery.toFixed(2)}</span></div>
         <div className="row total"><span>Total:</span><span>${grandTotal.toFixed(2)}</span></div>
       </div>
-      <button className="checkout-btn" onClick={()=> setShowConfirm(true)}>Proceed to Checkout</button>
+      <button className="checkout-btn" onClick={()=> { logFlow('checkout-click', { items: cart.length, total: grandTotal }); setShowConfirm(true); }}>Proceed to Checkout</button>
 
       {showConfirm && (
-        <div className="qr-modal-backdrop center" onClick={()=>setShowConfirm(false)}>
+        <div className="qr-modal-backdrop center" onClick={()=>{ logFlow('dismiss-confirm'); setShowConfirm(false); }}>
           <div className="qr-modal small" onClick={e=>e.stopPropagation()}>
             <h3>Confirm Your Order</h3>
             <p>Total: ${grandTotal.toFixed(2)}</p>
             <p>Items: {totalItems}</p>
             <p>Estimated delivery: 30-45 minutes</p>
             <div className="qr-actions">
-              <button onClick={()=>setShowConfirm(false)} className="secondary">Cancel</button>
+              <button onClick={()=>{ logFlow('cancel-confirm'); setShowConfirm(false);} } className="secondary">Cancel</button>
               <button onClick={()=>{ 
-                // Call onCheckout to navigate to PaymentPage
+                logFlow('confirm-order', { items: cart.length, total: grandTotal });
                 onCheckout && onCheckout({ cart, total: grandTotal });
                 setShowConfirm(false); 
               }}>Confirm</button>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import placeholderImg from './placeholder-menu-item.png';
 import './MenuPage.css';
 import './shared.css';
 import { Search, Filter, Clock, Star, Plus, Minus, X, TrendingUp, Heart, Tag, DollarSign, Timer } from 'lucide-react';
@@ -189,7 +190,7 @@ export default function MenuPage({ onSelectAdd, onQuantityChange, quantities = {
         {filtered.map(item => (
           <div key={item.id} className={"qr-item" + (!item.isAvailable? ' unavailable':'')} onClick={() => handleOpen(item)}>
             <div className="qr-img-wrap">
-              <img src={item.image || 'https://via.placeholder.com/400x300?text=Menu+Item'} alt={item.name} />
+              <img src={item.image || placeholderImg} alt={item.name} onError={e=>{ if(e.target.dataset.fallback!=='1'){ e.target.dataset.fallback='1'; e.target.src=placeholderImg; }}} />
               <div className="qr-badge time"><Clock size={10} /> {item.prepTime}m</div>
               {item.hasOffer && <div className="qr-badge offer">Offer</div>}
               {!item.isAvailable && <div className="qr-overlay">Empty</div>}
@@ -218,7 +219,7 @@ export default function MenuPage({ onSelectAdd, onQuantityChange, quantities = {
               <h3>{modalItem.name}</h3>
               <button onClick={()=>setModalItem(null)}><X size={20} /></button>
             </div>
-            <img src={modalItem.image || 'https://via.placeholder.com/400x300?text=Menu+Item'} alt={modalItem.name} className="qr-modal-img" />
+            <img src={modalItem.image || placeholderImg} onError={e=>{ if(e.target.dataset.fallback!=='1'){ e.target.dataset.fallback='1'; e.target.src=placeholderImg; }}} alt={modalItem.name} className="qr-modal-img" />
             <p>{modalItem.description}</p>
             <h5>Customizations</h5>
             <ul className="qr-customizations">
